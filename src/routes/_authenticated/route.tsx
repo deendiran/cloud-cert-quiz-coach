@@ -18,9 +18,9 @@ export const Route = createFileRoute("/_authenticated")({
 
 function ProtectedLayout() {
   return (
-    <div className="flex min-h-svh flex-col">
+    <div className="flex flex-1 flex-col">
       <AppHeader />
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 pb-24">
+      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-4">
         <Outlet />
       </main>
       <BottomNav />

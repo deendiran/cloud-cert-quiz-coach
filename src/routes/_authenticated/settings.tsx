@@ -11,6 +11,9 @@ import {
   Sparkles,
   AlertCircle,
   CheckCircle2,
+  KeyRound,
+  ShieldCheck,
+  ExternalLink,
 } from "lucide-react";
 import { useAuth, db } from "@/lib/auth-context";
 import { useSettings } from "@/lib/settings-context";
@@ -19,11 +22,14 @@ import {
   speakSequence,
   stopSpeaking,
 } from "@/lib/speech";
+import { getStoredGeminiKey, setStoredGeminiKey } from "@/lib/ai-generator";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 export const Route = createFileRoute("/_authenticated/settings")({
@@ -37,6 +43,56 @@ function SettingsPage() {
   const [isTestingSpeech, setIsTestingSpeech] = useState(false);
   const [langSaving, setLangSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+
+  // AI Gemini Key state
+  const [geminiKeyInput, setGeminiKeyInput] = useState(() => getStoredGeminiKey() || "");
+  const [apiKeySavedMessage, setApiKeySavedMessage] = useState<string | null>(null);
+  const [isTestingKey, setIsTestingKey] = useState(false);
+  const [testKeyStatus, setTestKeyStatus] = useState<"idle" | "success" | "error">("idle");
+  const [testKeyError, setTestKeyError] = useState<string | null>(null);
+
+  const handleSaveGeminiKey = () => {
+    const trimmed = geminiKeyInput.trim();
+    setStoredGeminiKey(trimmed || null);
+    setApiKeySavedMessage(trimmed ? "Google Gemini API key saved!" : "Google Gemini API key cleared.");
+    setTestKeyStatus("idle");
+    setTestKeyError(null);
+    setTimeout(() => setApiKeySavedMessage(null), 3500);
+  };
+
+  const handleTestGeminiKey = async () => {
+    const key = geminiKeyInput.trim() || getStoredGeminiKey();
+    if (!key) {
+      setTestKeyStatus("error");
+      setTestKeyError("Please enter a Google Gemini API key first.");
+      return;
+    }
+    setIsTestingKey(true);
+    setTestKeyStatus("idle");
+    setTestKeyError(null);
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`;
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: "Respond with: OK" }] }],
+        }),
+      });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => null);
+        throw new Error(errJson?.error?.message || `API returned status ${res.status}`);
+      }
+      setTestKeyStatus("success");
+      setStoredGeminiKey(key);
+      setGeminiKeyInput(key);
+    } catch (err: any) {
+      setTestKeyStatus("error");
+      setTestKeyError(err?.message || "Failed to connect to Google Gemini API");
+    } finally {
+      setIsTestingKey(false);
+    }
+  };
 
   const hasSpeech = speechSupported();
   const currentLanguage = profile?.language ?? "en";
@@ -344,6 +400,103 @@ function SettingsPage() {
               </div>
             </div>
           </RadioGroup>
+        </CardContent>
+      </Card>
+
+      {/* AI Question Coach & API Engine */}
+      <Card className="rounded-2xl border-border/70 shadow-sm">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2 text-lg font-bold">
+              <Sparkles className="size-5 text-primary" /> AI Question Coach & API Engine
+            </CardTitle>
+            {getStoredGeminiKey() ? (
+              <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30">
+                Active
+              </Badge>
+            ) : (
+              <Badge variant="secondary">Smart Offline Generator Active</Badge>
+            )}
+          </div>
+          <CardDescription>
+            Generate high-yield, scenario-based practice questions with multi-paragraph architectural rationales directly from your study notes.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-2 text-xs">
+            <div className="font-semibold text-foreground flex items-center gap-1.5 text-sm">
+              <ShieldCheck className="size-4 text-primary" /> 100% Free AI Agent — No Credit Card Required
+            </div>
+            <p className="text-muted-foreground leading-relaxed">
+              We recommend <strong>Google Gemini API</strong> (models: <code>gemini-2.5-flash</code> and <code>gemini-1.5-flash</code>). Google AI Studio provides a free tier with <strong>15 requests per minute, 1,000,000 tokens per day, and 1,500 requests per day</strong>. You can generate an API key in 30 seconds using your regular Google Account without entering billing or card details.
+            </p>
+            <div className="pt-1">
+              <a
+                href="https://aistudio.google.com/app/apikey"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 font-semibold text-primary hover:underline"
+              >
+                <span>Get your free key at Google AI Studio</span>
+                <ExternalLink className="size-3.5" />
+              </a>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="gemini-key" className="text-xs font-semibold flex items-center gap-1.5">
+              <KeyRound className="size-3.5" /> Google Gemini API Key
+            </Label>
+            <div className="flex gap-2">
+              <Input
+                id="gemini-key"
+                type="password"
+                placeholder="AIzaSy..."
+                value={geminiKeyInput}
+                onChange={(e) => setGeminiKeyInput(e.target.value)}
+                className="font-mono text-xs"
+              />
+              <Button
+                variant="outline"
+                onClick={handleSaveGeminiKey}
+                className="font-semibold shrink-0"
+              >
+                Save Key
+              </Button>
+              <Button
+                variant="default"
+                disabled={isTestingKey || !geminiKeyInput.trim()}
+                onClick={() => void handleTestGeminiKey()}
+                className="font-semibold shrink-0"
+              >
+                {isTestingKey ? "Testing..." : "Test"}
+              </Button>
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Keys are stored securely in your browser's local storage and sent directly to Google's API endpoint.
+            </p>
+          </div>
+
+          {apiKeySavedMessage && (
+            <div className="flex items-center gap-2 rounded-xl border border-correct/30 bg-correct-soft p-3 text-xs text-correct-foreground">
+              <CheckCircle2 className="size-4 shrink-0" />
+              <span>{apiKeySavedMessage}</span>
+            </div>
+          )}
+
+          {testKeyStatus === "success" && (
+            <div className="flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs text-emerald-800 dark:text-emerald-300 font-medium">
+              <CheckCircle2 className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+              <span>Connection verified successfully! Your study notes will now generate rich scenario questions via Google Gemini.</span>
+            </div>
+          )}
+
+          {testKeyStatus === "error" && (
+            <div className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive font-medium">
+              <AlertCircle className="size-4 shrink-0" />
+              <span>{testKeyError || "Could not connect to Gemini API."}</span>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

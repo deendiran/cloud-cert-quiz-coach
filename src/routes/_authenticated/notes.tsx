@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import {
   Sparkles,
   BookOpen,
@@ -9,6 +9,7 @@ import {
   Loader2,
   FileText,
   Play,
+  KeyRound,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
-import { generateFallbackQuestions } from "@/lib/fallback-generator";
+import { generateQuestionsFromNotes, getStoredGeminiKey } from "@/lib/ai-generator";
 import type { Tables } from "@/integrations/supabase/types";
 
 export const Route = createFileRoute("/_authenticated/notes")({
@@ -32,7 +33,7 @@ interface NoteWithQuestionCount extends Note {
 }
 
 export function NotesPage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
 
   const [notes, setNotes] = useState<NoteWithQuestionCount[]>([]);
@@ -123,60 +124,42 @@ export function NotesPage() {
         throw noteError || new Error("Failed to save note");
       }
 
-      // 2. Try calling the Supabase Edge Function
-      let generatedQuestionsCount = 0;
-      let usedFallback = false;
+      // 2. Generate questions via unified AI pipeline
+      const { questions: genQuestions, usedProvider } = await generateQuestionsFromNotes({
+        noteId: note.id,
+        notesBody: body.trim(),
+        noteTitle,
+        count: 5,
+        language: profile?.language || "en",
+      });
 
-      try {
-        const { data: aiData, error: aiError } = await supabase.functions.invoke(
-          "generate-questions",
-          {
-            body: {
-              note_id: note.id,
-              notes: body.trim(),
-              count: 5,
-            },
-          }
-        );
+      if (!genQuestions || genQuestions.length === 0) {
+        throw new Error("Could not extract enough material from notes to generate questions.");
+      }
 
-        if (aiError || !aiData?.questions) {
-          throw aiError || new Error("AI function returned no questions");
-        }
+      // 3. Save to questions table if not already persisted by Edge function
+      if (usedProvider !== "edge_function") {
+        const insertPayload = genQuestions.map((q) => ({
+          owner_id: user.id,
+          note_id: note.id,
+          topic_label: `Notes: ${noteTitle}`,
+          difficulty: q.difficulty,
+          type: "mcq" as const,
+          stem: q.stem,
+          options: q.options,
+          correct_ids: q.correct_ids,
+          explanation: q.explanation,
+          memory_hook: q.memory_hook,
+          hint: q.hint,
+          source: q.source,
+          is_published: false,
+        }));
 
-        generatedQuestionsCount = aiData.questions.length;
-      } catch (fnErr) {
-        console.warn("AI generation unavailable, using local generator:", fnErr);
-        usedFallback = true;
+        const { error: insertError } = await supabase
+          .from("questions")
+          .insert(insertPayload);
 
-        // Use local offline fallback generator
-        const fallbackQs = generateFallbackQuestions(body.trim(), 5, noteTitle);
-
-        if (fallbackQs.length > 0) {
-          const insertPayload = fallbackQs.map((q) => ({
-            owner_id: user.id,
-            note_id: note.id,
-            topic_label: `Notes: ${noteTitle}`,
-            difficulty: q.difficulty,
-            type: "mcq" as const,
-            stem: q.stem,
-            options: q.options,
-            correct_ids: q.correct_ids,
-            explanation: q.explanation,
-            memory_hook: q.memory_hook,
-            hint: q.hint,
-            source: "local_generated" as const,
-            is_published: false,
-          }));
-
-          const { error: insertError } = await supabase
-            .from("questions")
-            .insert(insertPayload);
-
-          if (insertError) throw insertError;
-          generatedQuestionsCount = fallbackQs.length;
-        } else {
-          throw new Error("Could not extract enough sentences to generate questions");
-        }
+        if (insertError) throw insertError;
       }
 
       // Success feedback
@@ -184,11 +167,18 @@ export function NotesPage() {
       setBody("");
       void loadNotes();
 
+      let successText = `Generated ${genQuestions.length} practice questions!`;
+      if (usedProvider === "gemini") {
+        successText = `Generated ${genQuestions.length} deep scenario questions with detailed rationales using Google Gemini AI!`;
+      } else if (usedProvider === "edge_function") {
+        successText = `Successfully generated ${genQuestions.length} AI practice questions!`;
+      } else {
+        successText = `Generated ${genQuestions.length} conceptual practice questions with rationales. Tip: Add a free Google Gemini key in Settings for AI scenario questions.`;
+      }
+
       setStatusMessage({
-        type: usedFallback ? "warning" : "success",
-        text: usedFallback
-          ? `Generated ${generatedQuestionsCount} practice questions using the local offline generator (AI service was busy).`
-          : `Successfully generated ${generatedQuestionsCount} AI practice questions!`,
+        type: usedProvider === "local_generator" ? "warning" : "success",
+        text: successText,
         noteId: note.id,
       });
     } catch (err: any) {
@@ -245,6 +235,8 @@ export function NotesPage() {
     }
   };
 
+  const hasGeminiKey = Boolean(getStoredGeminiKey());
+
   return (
     <div className="py-8 max-w-2xl mx-auto space-y-8">
       {/* Page Header */}
@@ -256,6 +248,26 @@ export function NotesPage() {
           Unofficial study aid. Not affiliated with or endorsed by Microsoft.
         </p>
       </div>
+
+      {/* AI Key Status Banner */}
+      {hasGeminiKey ? (
+        <div className="flex items-center gap-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2.5 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
+          <Sparkles className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+          <span>Google Gemini AI active — Generating thought-provoking scenario questions with comprehensive explanations.</span>
+        </div>
+      ) : (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <Sparkles className="size-4 shrink-0 text-primary" />
+            <span>
+              Want deep, scenario-driven exam questions? <strong>Google Gemini API</strong> is 100% free with no credit card required.
+            </span>
+          </div>
+          <Button variant="outline" size="sm" asChild className="h-7 text-xs font-semibold shrink-0">
+            <Link to="/settings">Add Free Key</Link>
+          </Button>
+        </div>
+      )}
 
       {statusMessage && (
         <Alert
