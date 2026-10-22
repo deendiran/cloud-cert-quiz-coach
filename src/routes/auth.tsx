@@ -40,12 +40,18 @@ function friendlyAuthError(message: string): string {
     return "That password doesn't match this email. Try again, or reset your password below.";
   if (m.includes("email not confirmed"))
     return "Please confirm your email first — check your inbox for the confirmation link.";
-  if (m.includes("already registered"))
+  if (m.includes("already registered") || m.includes("user already exists"))
     return "An account already exists with this email. Try signing in instead.";
-  if (m.includes("rate limit"))
+  if (m.includes("weak_password") || m.includes("weak") || m.includes("easy to guess") || m.includes("pwned"))
+    return "This password is known to be weak or compromised in data breaches. Please choose a stronger, unique password.";
+  if (m.includes("at least") && m.includes("character"))
+    return "Password must be at least 8 characters long.";
+  if (m.includes("rate limit") || m.includes("too many requests"))
     return "Too many attempts just now. Please wait a minute and try again.";
   if (m.includes("failed to fetch") || m.includes("network"))
     return "We couldn't reach the server. Check your connection and try again.";
+  if (message.trim().length > 0 && !m.includes("internal server") && !m.includes("database error"))
+    return message;
   return "Something went wrong. Please try again.";
 }
 
@@ -93,6 +99,37 @@ function AuthPage() {
       </div>
     </div>
   );
+}
+
+async function triggerGoogleSignIn(nextPath: string): Promise<{ error?: string }> {
+  try {
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
+    });
+    if (result.redirected) return {};
+    if (!result.error) return {};
+  } catch {
+    // Fall through to native Supabase OAuth (e.g. on localhost)
+  }
+
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`,
+    },
+  });
+
+  if (error) {
+    const errLow = error.message.toLowerCase();
+    if (errLow.includes("missing oauth secret") || errLow.includes("unsupported provider")) {
+      return {
+        error:
+          "Google sign-in is not yet configured in your Supabase project (missing Google Client ID/Secret in Supabase Auth -> Providers). Please sign in with email & password, or configure Google OAuth in Supabase.",
+      };
+    }
+    return { error: friendlyAuthError(error.message) };
+  }
+  return {};
 }
 
 function SignInForm({
@@ -147,12 +184,8 @@ function SignInForm({
 
   const handleGoogle = async () => {
     setError(null);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (result.error) {
-      setError("Google sign-in couldn't start. Please try again.");
-    }
+    const { error: gError } = await triggerGoogleSignIn(nextPath);
+    if (gError) setError(gError);
   };
 
   return (
@@ -283,12 +316,8 @@ function SignUpForm({ nextPath }: { nextPath: string }) {
 
   const handleGoogle = async () => {
     setError(null);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (result.error) {
-      setError("Google sign-in couldn't start. Please try again.");
-    }
+    const { error: gError } = await triggerGoogleSignIn(nextPath);
+    if (gError) setError(gError);
   };
 
   if (signedUp) {
