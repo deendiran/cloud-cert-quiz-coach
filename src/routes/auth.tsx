@@ -102,29 +102,44 @@ function AuthPage() {
 }
 
 async function triggerGoogleSignIn(nextPath: string): Promise<{ error?: string }> {
-  try {
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (result.redirected) return {};
-    if (!result.error) return {};
-  } catch {
-    // Fall through to native Supabase OAuth (e.g. on localhost)
+  // Only attempt Lovable Cloud auth proxy when running inside a Lovable preview environment
+  const isLovableHost =
+    typeof window !== "undefined" &&
+    (window.location.hostname.endsWith(".lovable.app") ||
+      window.location.hostname.endsWith(".lovableproject.com") ||
+      window.location.hostname.includes("lovable"));
+
+  if (isLovableHost) {
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+      if (result.redirected) return {};
+      if (!result.error) return {};
+    } catch {
+      // Fall through to native Supabase OAuth
+    }
   }
 
+  // Native Supabase OAuth flow (for localhost and standalone domains)
+  const callbackUrl = `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`;
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`,
+      redirectTo: callbackUrl,
     },
   });
 
   if (error) {
     const errLow = error.message.toLowerCase();
-    if (errLow.includes("missing oauth secret") || errLow.includes("unsupported provider")) {
+    if (
+      errLow.includes("missing oauth secret") ||
+      errLow.includes("unsupported provider") ||
+      errLow.includes("provider is not enabled")
+    ) {
       return {
         error:
-          "Google sign-in is not yet configured in your Supabase project (missing Google Client ID/Secret in Supabase Auth -> Providers). Please sign in with email & password, or configure Google OAuth in Supabase.",
+          "Google sign-in is not enabled in your Supabase project (Auth -> Providers -> Google). Please sign in with email & password, or enable Google provider in Supabase.",
       };
     }
     return { error: friendlyAuthError(error.message) };
