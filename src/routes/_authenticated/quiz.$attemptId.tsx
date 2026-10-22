@@ -232,6 +232,23 @@ export function QuizPage() {
     } catch (err) {
       console.error("Failed to record answer:", err);
     }
+
+    // Read answer & explanation aloud if enabled
+    if (settings.read_aloud && isSpeechSupported()) {
+      const feedback = isCorrect ? "Correct!" : "Incorrect.";
+      const items = [
+        feedback,
+        currentQuestion.explanation,
+        currentQuestion.memory_hook ? `Memory tip: ${currentQuestion.memory_hook}` : "",
+      ].filter(Boolean);
+
+      setIsSpeaking(true);
+      speakSequence(items, {
+        rate: settings.speech_rate || 1,
+        onEnd: () => setIsSpeaking(false),
+        onError: () => setIsSpeaking(false),
+      });
+    }
   };
 
   // Next question or finish
