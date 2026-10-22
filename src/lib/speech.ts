@@ -7,6 +7,8 @@ export function speechSupported(): boolean {
   return typeof window !== "undefined" && "speechSynthesis" in window;
 }
 
+export const isSpeechSupported = speechSupported;
+
 export function stopSpeaking() {
   if (speechSupported()) window.speechSynthesis.cancel();
 }
@@ -14,9 +16,10 @@ export function stopSpeaking() {
 /** Speak a list of text parts one after another. */
 export function speakSequence(
   parts: string[],
-  opts: { rate?: number; lang?: string; onEnd?: () => void } = {}
+  opts: { rate?: number; lang?: string; onEnd?: () => void; onError?: () => void } = {}
 ) {
   if (!speechSupported()) {
+    opts.onError?.();
     opts.onEnd?.();
     return;
   }

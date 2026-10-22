@@ -17,8 +17,12 @@ function initials(name: string | null | undefined, email: string | null | undefi
   const source = (name ?? email ?? "?").trim();
   const parts = source.split(/\s+/).filter(Boolean);
   if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  const first = parts[0] ?? "";
+  if (parts.length === 1) return first.slice(0, 2).toUpperCase();
+  const last = parts[parts.length - 1] ?? "";
+  const firstChar = first[0] ?? "";
+  const lastChar = last[0] ?? "";
+  return (firstChar + lastChar).toUpperCase() || "?";
 }
 
 export function AppHeader() {
