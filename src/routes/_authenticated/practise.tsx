@@ -181,20 +181,34 @@ export function PractisePage() {
               <Loader2 className="size-4 animate-spin" /> Loading topics…
             </div>
           ) : (
-            <div className="flex flex-wrap gap-2 pt-1">
-              {/* All topics chip */}
-              <button
-                type="button"
-                onClick={() => setSelectedTopicId("all")}
-                className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium transition-all ${
-                  selectedTopicId === "all"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-transparent"
-                }`}
-              >
-                {selectedTopicId === "all" && <Check className="size-3.5" />}
-                All topics
-              </button>
+            <div className="space-y-3 pt-1">
+              {topics.length === 0 && (
+                <div className="rounded-xl border border-dashed border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-700 dark:text-amber-300">
+                  <p className="font-semibold">No study topics loaded yet</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    To load the built-in Azure topics and initial practice questions, run{" "}
+                    <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-foreground">
+                      supabase/seed.sql
+                    </code>{" "}
+                    in your Supabase SQL Editor.
+                  </p>
+                </div>
+              )}
+
+              <div className="flex flex-wrap gap-2">
+                {/* All topics chip */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedTopicId("all")}
+                  className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium transition-all ${
+                    selectedTopicId === "all"
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-transparent"
+                  }`}
+                >
+                  {selectedTopicId === "all" && <Check className="size-3.5" />}
+                  All topics
+                </button>
 
               {/* Individual topics */}
               {topics.map((t) => {
@@ -232,6 +246,7 @@ export function PractisePage() {
                   From my notes
                 </button>
               )}
+              </div>
             </div>
           )}
         </CardContent>
