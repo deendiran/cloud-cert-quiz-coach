@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, RotateCcw, Target, Zap } from "lucide-react";
+import { RotateCcw, Target, Zap } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
