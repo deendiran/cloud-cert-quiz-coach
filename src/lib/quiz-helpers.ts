@@ -11,11 +11,16 @@ export function shuffle<T>(items: T[]): T[] {
   return copy;
 }
 
-export function isCorrectChoice(question: QuizQuestion, optionId: string): boolean {
+export function isCorrectChoice(
+  question: Pick<QuizQuestion, "correct_ids">,
+  optionId: string
+): boolean {
   return question.correct_ids.includes(optionId);
 }
 
-export function correctOptionText(question: QuizQuestion): string {
+export function correctOptionText(
+  question: Pick<QuizQuestion, "options" | "correct_ids">
+): string {
   const correct = question.options.find((option) =>
     question.correct_ids.includes(option.id)
   );
