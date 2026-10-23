@@ -8,11 +8,12 @@ const SYSTEM_PROMPT = `You write practice questions from a learner's personal st
 
 Strict rules:
 - Base every question only on facts stated in the notes. Never add outside facts, product names, or numbers that the notes do not contain. If the notes are too thin for a question, make fewer questions rather than inventing content.
+- Do NOT write superficial fill-in-the-blank or trivial sentence-completion questions. Instead, formulate conceptual questions or realistic scenarios testing trade-offs, decisions, or core principles that require the learner to think and internalize the material.
 - Each question has a clear stem, 3-4 answer options with ids "a", "b", "c", "d", and exactly one correct option.
-- Distractors must be plausible but clearly wrong to someone who understands the notes.
-- explanation: 1-3 sentences that state the correct fact from the notes, why it is right, and briefly why the most tempting wrong option is wrong. Be precise; never guess or hedge.
+- Distractors must be plausible and thoughtful, testing common misconceptions while remaining unambiguously wrong to someone who understands the notes.
+- explanation: 2-3 clear, educational sentences that explain the core principle, why the correct answer is right according to the notes, and why the main distractor is incorrect.
 - memory_hook: one short, vivid mnemonic or metaphor (about 12 words or fewer) whenever the concept allows.
-- hint: a nudge that helps recall without revealing the answer.
+- hint: a thoughtful nudge that guides the learner's reasoning without revealing the answer.
 - Plain, encouraging, learner-friendly language. Return JSON only.`;
 
 interface ValidQuestion {
@@ -102,19 +103,30 @@ export const generateQuestionsForNote = createServerFn({ method: "POST" })
     }
 
     // Daily usage limit, tracked server-side (ai_usage is read-only to users).
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    let usage: { calls: number } | null = null;
+    let hasAdmin = false;
     const today = new Date().toISOString().slice(0, 10);
-    const { data: usage } = await supabaseAdmin
-      .from("ai_usage")
-      .select("calls")
-      .eq("user_id", userId)
-      .eq("day", today)
-      .maybeSingle();
-    if ((usage?.calls ?? 0) >= DAILY_CALL_LIMIT) {
-      return { ok: false as const, status: 429 as const, reason: "daily_limit" as const };
+
+    if (process.env["SUPABASE_SERVICE_ROLE_KEY"]) {
+      try {
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const { data } = await supabaseAdmin
+          .from("ai_usage")
+          .select("calls")
+          .eq("user_id", userId)
+          .eq("day", today)
+          .maybeSingle();
+        usage = data;
+        hasAdmin = true;
+        if ((usage?.calls ?? 0) >= DAILY_CALL_LIMIT) {
+          return { ok: false as const, status: 429 as const, reason: "daily_limit" as const };
+        }
+      } catch (adminErr) {
+        console.warn("Could not check ai_usage via supabaseAdmin:", adminErr);
+      }
     }
 
-    const apiKey = process.env["GOOGLE_API_KEY"];
+    const apiKey = process.env["GOOGLE_API_KEY"] || process.env["GEMINI_API_KEY"];
     if (!apiKey) {
       return { ok: false as const, status: 502 as const, reason: "missing_key" as const };
     }
@@ -205,17 +217,24 @@ export const generateQuestionsForNote = createServerFn({ method: "POST" })
       return { ok: false as const, status: 502 as const, reason: "insert_failed" as const };
     }
 
-    // Record the call (update when a row exists, otherwise insert).
-    if (usage) {
-      await supabaseAdmin
-        .from("ai_usage")
-        .update({ calls: (usage.calls ?? 0) + 1 })
-        .eq("user_id", userId)
-        .eq("day", today);
-    } else {
-      await supabaseAdmin
-        .from("ai_usage")
-        .insert({ user_id: userId, day: today, calls: 1 });
+    // Record the call if admin client is available.
+    if (hasAdmin) {
+      try {
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        if (usage) {
+          await supabaseAdmin
+            .from("ai_usage")
+            .update({ calls: (usage.calls ?? 0) + 1 })
+            .eq("user_id", userId)
+            .eq("day", today);
+        } else {
+          await supabaseAdmin
+            .from("ai_usage")
+            .insert({ user_id: userId, day: today, calls: 1 });
+        }
+      } catch (adminErr) {
+        console.warn("Could not record ai_usage:", adminErr);
+      }
     }
 
     return { ok: true as const, questions: inserted };
