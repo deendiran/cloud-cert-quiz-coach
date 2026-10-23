@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { shuffle } from "@/lib/quiz-helpers";
 
 export interface OptionRow {
   id: string;
