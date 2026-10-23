@@ -16,9 +16,7 @@ import { useAuth } from "@/lib/auth-context";
 import {
   correctOptionText,
   friendlyDbError,
-  letterFor,
   scoreEncouragement,
-  shuffle,
 } from "@/lib/quiz-helpers";
 
 export const Route = createFileRoute("/_authenticated/results/$attemptId")({
