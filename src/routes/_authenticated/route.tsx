@@ -1,7 +1,6 @@
 import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/app-header";
-import { BottomNav } from "@/components/bottom-nav";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -18,12 +17,11 @@ export const Route = createFileRoute("/_authenticated")({
 
 function ProtectedLayout() {
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="flex min-h-svh flex-col">
       <AppHeader />
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-4">
+      <main className="mx-auto w-full max-w-3xl flex-1 px-4 pb-10">
         <Outlet />
       </main>
-      <BottomNav />
     </div>
   );
 }

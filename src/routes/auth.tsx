@@ -18,10 +18,8 @@ import { safeRedirectPath } from "@/lib/redirect";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
-  validateSearch: (
-    search: Record<string, unknown>
-  ): { next?: string | undefined } => ({
-    next: typeof search["next"] === "string" ? search["next"] : undefined,
+  validateSearch: (search: Record<string, unknown>) => ({
+    next: typeof search.next === "string" ? search.next : undefined,
   }),
   beforeLoad: async ({ search }) => {
     const {
@@ -40,18 +38,12 @@ function friendlyAuthError(message: string): string {
     return "That password doesn't match this email. Try again, or reset your password below.";
   if (m.includes("email not confirmed"))
     return "Please confirm your email first — check your inbox for the confirmation link.";
-  if (m.includes("already registered") || m.includes("user already exists"))
+  if (m.includes("already registered"))
     return "An account already exists with this email. Try signing in instead.";
-  if (m.includes("weak_password") || m.includes("weak") || m.includes("easy to guess") || m.includes("pwned"))
-    return "This password is known to be weak or compromised in data breaches. Please choose a stronger, unique password.";
-  if (m.includes("at least") && m.includes("character"))
-    return "Password must be at least 8 characters long.";
-  if (m.includes("rate limit") || m.includes("too many requests"))
+  if (m.includes("rate limit"))
     return "Too many attempts just now. Please wait a minute and try again.";
   if (m.includes("failed to fetch") || m.includes("network"))
     return "We couldn't reach the server. Check your connection and try again.";
-  if (message.trim().length > 0 && !m.includes("internal server") && !m.includes("database error"))
-    return message;
   return "Something went wrong. Please try again.";
 }
 
@@ -64,7 +56,7 @@ interface FieldErrors {
 }
 
 function AuthPage() {
-  const search = Route.useSearch();
+  const { search } = Route.useSearch();
   const navigate = useNavigate();
   const nextPath = safeRedirectPath(search.next);
 
@@ -99,52 +91,6 @@ function AuthPage() {
       </div>
     </div>
   );
-}
-
-async function triggerGoogleSignIn(nextPath: string): Promise<{ error?: string }> {
-  // Only attempt Lovable Cloud auth proxy when running inside a Lovable preview environment
-  const isLovableHost =
-    typeof window !== "undefined" &&
-    (window.location.hostname.endsWith(".lovable.app") ||
-      window.location.hostname.endsWith(".lovableproject.com") ||
-      window.location.hostname.includes("lovable"));
-
-  if (isLovableHost) {
-    try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
-      });
-      if (result.redirected) return {};
-      if (!result.error) return {};
-    } catch {
-      // Fall through to native Supabase OAuth
-    }
-  }
-
-  // Native Supabase OAuth flow (for localhost and standalone domains)
-  const callbackUrl = `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`;
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: {
-      redirectTo: callbackUrl,
-    },
-  });
-
-  if (error) {
-    const errLow = error.message.toLowerCase();
-    if (
-      errLow.includes("missing oauth secret") ||
-      errLow.includes("unsupported provider") ||
-      errLow.includes("provider is not enabled")
-    ) {
-      return {
-        error:
-          "Google sign-in is not enabled in your Supabase project (Auth -> Providers -> Google). Please sign in with email & password, or enable Google provider in Supabase.",
-      };
-    }
-    return { error: friendlyAuthError(error.message) };
-  }
-  return {};
 }
 
 function SignInForm({
@@ -199,8 +145,12 @@ function SignInForm({
 
   const handleGoogle = async () => {
     setError(null);
-    const { error: gError } = await triggerGoogleSignIn(nextPath);
-    if (gError) setError(gError);
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
+    });
+    if (result.error) {
+      setError("Google sign-in couldn't start. Please try again.");
+    }
   };
 
   return (
@@ -331,8 +281,12 @@ function SignUpForm({ nextPath }: { nextPath: string }) {
 
   const handleGoogle = async () => {
     setError(null);
-    const { error: gError } = await triggerGoogleSignIn(nextPath);
-    if (gError) setError(gError);
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
+    });
+    if (result.error) {
+      setError("Google sign-in couldn't start. Please try again.");
+    }
   };
 
   if (signedUp) {
