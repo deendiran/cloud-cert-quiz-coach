@@ -19,7 +19,7 @@ export const Route = createFileRoute("/_authenticated/practise")({
       },
     ],
   }),
-  validateSearch: (search: Record<string, unknown>) => ({
+  validateSearch: (search: Record<string, unknown>): { topics?: number[] } => ({
     topics:
       typeof search["topics"] === "string" && search["topics"].length > 0
         ? search["topics"]

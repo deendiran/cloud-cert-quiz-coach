@@ -99,7 +99,9 @@ export async function generateLocalQuestions(
   } = await supabase.auth.getUser();
   if (!user) return 0;
   const withOwner = rows.map((row) => ({ ...row, owner_id: user.id }));
-  const { error } = await supabase.from("questions").insert(withOwner);
+  const { error } = await supabase
+    .from("questions")
+    .insert(withOwner as unknown as Record<string, string>);
   if (error) return 0;
   return withOwner.length;
 }

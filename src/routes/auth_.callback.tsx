@@ -8,8 +8,8 @@ import { safeRedirectPath } from "@/lib/redirect";
 
 export const Route = createFileRoute("/auth_/callback")({
   ssr: false,
-  validateSearch: (search: Record<string, unknown>) => ({
-    next: typeof search.next === "string" ? search.next : undefined,
+  validateSearch: (search: Record<string, unknown>): { next?: string } => ({
+    next: typeof search["next"] === "string" ? search["next"] : undefined,
   }),
   component: AuthCallbackPage,
 });

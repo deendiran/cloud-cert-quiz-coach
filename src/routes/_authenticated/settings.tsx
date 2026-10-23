@@ -174,7 +174,7 @@ function SettingsPage() {
               max={2}
               step={0.1}
               value={[settings.speech_rate]}
-              onValueChange={([value]) => void update({ speech_rate: value })}
+              onValueChange={(values) => void update({ speech_rate: values[0] ?? 1 })}
               aria-label="Speech speed"
             />
             <div className="mt-1 flex justify-between text-xs text-muted-foreground">

@@ -18,8 +18,8 @@ import { safeRedirectPath } from "@/lib/redirect";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
-  validateSearch: (search: Record<string, unknown>) => ({
-    next: typeof search.next === "string" ? search.next : undefined,
+  validateSearch: (search: Record<string, unknown>): { next?: string } => ({
+    next: typeof search["next"] === "string" ? search["next"] : undefined,
   }),
   beforeLoad: async ({ search }) => {
     const {
@@ -56,7 +56,7 @@ interface FieldErrors {
 }
 
 function AuthPage() {
-  const { search } = Route.useSearch();
+  const search = Route.useSearch();
   const navigate = useNavigate();
   const nextPath = safeRedirectPath(search.next);
 
