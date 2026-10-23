@@ -13,6 +13,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/lib/auth-context";
+import { SettingsProvider } from "@/lib/settings-context";
 import { AppFooter } from "@/components/app-footer";
 
 const APP_TITLE = "Azure Quiz Coach — Unofficial exam practice";
@@ -125,11 +126,13 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <div className="flex min-h-svh flex-col">
-          {/* Nested routes render here. */}
-          <Outlet />
-          <AppFooter />
-        </div>
+        <SettingsProvider>
+          <div className="flex min-h-svh flex-col">
+            {/* Nested routes render here. */}
+            <Outlet />
+            <AppFooter />
+          </div>
+        </SettingsProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
