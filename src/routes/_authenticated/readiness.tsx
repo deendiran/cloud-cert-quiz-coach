@@ -22,6 +22,15 @@ import { useAuth } from "@/lib/auth-context";
 import { friendlyDbError, readinessBand } from "@/lib/quiz-helpers";
 
 export const Route = createFileRoute("/_authenticated/readiness")({
+  head: () => ({
+    meta: [
+      { title: "Readiness — Azure Quiz Coach" },
+      {
+        name: "description",
+        content: "A weighted readiness score by topic, plus your daily accuracy.",
+      },
+    ],
+  }),
   component: ReadinessPage,
 });
 

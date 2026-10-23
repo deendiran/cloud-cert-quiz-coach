@@ -20,6 +20,15 @@ import {
 } from "@/lib/quiz-helpers";
 
 export const Route = createFileRoute("/_authenticated/results/$attemptId")({
+  head: () => ({
+    meta: [
+      { title: "Results — Azure Quiz Coach" },
+      {
+        name: "description",
+        content: "See your score, review missed questions and plan next steps.",
+      },
+    ],
+  }),
   component: ResultsPage,
 });
 

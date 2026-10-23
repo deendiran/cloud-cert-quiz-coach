@@ -32,6 +32,15 @@ import {
 } from "@/lib/speech";
 
 export const Route = createFileRoute("/_authenticated/quiz/$attemptId")({
+  head: () => ({
+    meta: [
+      { title: "Quiz — Azure Quiz Coach" },
+      {
+        name: "description",
+        content: "Answer one question at a time with hints and read-aloud.",
+      },
+    ],
+  }),
   component: QuizPage,
 });
 

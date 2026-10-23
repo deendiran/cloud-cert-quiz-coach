@@ -9,6 +9,16 @@ import { useAuth } from "@/lib/auth-context";
 import { friendlyDbError, shuffle } from "@/lib/quiz-helpers";
 
 export const Route = createFileRoute("/_authenticated/practise")({
+  head: () => ({
+    meta: [
+      { title: "Practise — Azure Quiz Coach" },
+      {
+        name: "description",
+        content:
+          "Choose your topics and quiz length, then start a practice quiz.",
+      },
+    ],
+  }),
   validateSearch: (search: Record<string, unknown>) => ({
     topics:
       typeof search.topics === "string" && search.topics.length > 0

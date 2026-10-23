@@ -27,6 +27,15 @@ import { generateQuestionsForNote } from "@/lib/server/generate-questions.functi
 import { speakSequence, speechSupported, stopSpeaking } from "@/lib/speech";
 
 export const Route = createFileRoute("/_authenticated/notes")({
+  head: () => ({
+    meta: [
+      { title: "Notes — Azure Quiz Coach" },
+      {
+        name: "description",
+        content: "Paste your study notes and turn them into practice questions.",
+      },
+    ],
+  }),
   component: NotesPage,
 });
 

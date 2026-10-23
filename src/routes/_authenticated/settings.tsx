@@ -31,6 +31,15 @@ import { useSettings } from "@/lib/settings-context";
 import { deleteMyAccount } from "@/lib/server/delete-account.functions";
 
 export const Route = createFileRoute("/_authenticated/settings")({
+  head: () => ({
+    meta: [
+      { title: "Settings — Azure Quiz Coach" },
+      {
+        name: "description",
+        content: "Large text, dyslexia-friendly font, read-aloud speed and language.",
+      },
+    ],
+  }),
   component: SettingsPage,
 });
 
