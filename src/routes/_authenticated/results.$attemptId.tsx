@@ -238,11 +238,7 @@ function ResultsPage() {
                     </p>
                     <p className="mt-2 text-sm text-foreground">
                       <span className="font-semibold">Correct answer:</span>{" "}
-                      {correctOptionText({
-                        ...answer.question!,
-                        correct_ids: answer.question!.correct_ids,
-                        options: answer.question!.options,
-                      } as never)}
+                      {correctOptionText(answer.question!)}
                     </p>
                     <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                       {answer.question!.explanation}
