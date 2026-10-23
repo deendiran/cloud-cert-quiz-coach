@@ -158,7 +158,7 @@ function ReadinessPage() {
             <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
               Take your first quiz to see your readiness.
             </p>
-            <Button className="mt-6" onClick={() => navigate({ to: "/practise" })}>
+            <Button className="mt-6" onClick={() => navigate({ to: "/practise", search: {} })}>
               Start practising
             </Button>
           </CardContent>
@@ -273,9 +273,10 @@ function ReadinessPage() {
             </div>
             <Button
               onClick={() =>
-                nextUpTopicId
-                  ? navigate({ to: "/practise", search: { topics: String(nextUpTopicId) } })
-                  : navigate({ to: "/practise" })
+                navigate({
+                  to: "/practise",
+                  search: nextUpTopicId ? { topics: [nextUpTopicId] } : {},
+                })
               }
             >
               <Zap aria-hidden="true" />

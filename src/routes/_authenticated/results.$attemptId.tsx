@@ -276,12 +276,10 @@ function ResultsPage() {
         </Button>
         <Button
           onClick={() =>
-            weakTopicIds.length > 0
-              ? navigate({
-                  to: "/practise",
-                  search: { topics: weakTopicIds.join(",") },
-                })
-              : navigate({ to: "/practise" })
+            navigate({
+              to: "/practise",
+              search: weakTopicIds.length > 0 ? { topics: weakTopicIds } : {},
+            })
           }
         >
           <Zap aria-hidden="true" />

@@ -80,11 +80,18 @@ function QuizPage() {
         )
         .in("id", questionIds);
       if (error) throw new Error(error.message);
-      // Preserve the attempt's original question order.
-      const byId = new Map((data ?? []).map((q) => [q.id, q]));
+      // Preserve the attempt's original question order; jsonb columns are
+      // loosely typed by the generated client, so normalize them here.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const byId = new Map<string, any>((data ?? []).map((row) => [row.id, row]));
       return questionIds
         .map((id) => byId.get(id))
-        .filter((q): q is QuizQuestion => !!q);
+        .filter(Boolean)
+        .map((row) => ({
+          ...row,
+          options: (row.options ?? []) as OptionRow[],
+          correct_ids: (row.correct_ids ?? []) as string[],
+        })) as QuizQuestion[];
     },
   });
 

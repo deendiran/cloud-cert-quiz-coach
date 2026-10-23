@@ -404,8 +404,9 @@ function NotesPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this note?</AlertDialogTitle>
             <AlertDialogDescription>
-              "{notePendingDelete?.title}" and its {notePendingDelete?.questionCount ?? 0}{" "}
-              question{notePendingDelete?.questionCount === 1 ? "" : "s"} will be removed.
+              "{notePendingDelete?.title}" and its{" "}
+              {notePendingDelete ? (questionCounts.get(notePendingDelete.id) ?? 0) : 0}{" "}
+              question{notePendingDelete && (questionCounts.get(notePendingDelete.id) ?? 0) === 1 ? "" : "s"} will be removed.
               This can't be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
