@@ -19,7 +19,7 @@ function initials(name: string | null | undefined, email: string | null | undefi
   const first = parts[0] ?? "?";
   if (parts.length <= 1) return first.slice(0, 2).toUpperCase();
   const last = parts[parts.length - 1] ?? "";
-  return (first[0] + last[0]).toUpperCase();
+  return ((first[0] ?? "?") + (last[0] ?? "")).toUpperCase() || "?";
 }
 
 export function AppHeader() {

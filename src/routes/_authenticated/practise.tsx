@@ -19,15 +19,16 @@ export const Route = createFileRoute("/_authenticated/practise")({
       },
     ],
   }),
-  validateSearch: (search: Record<string, unknown>): { topics?: number[] } => ({
-    topics:
-      typeof search["topics"] === "string" && search["topics"].length > 0
-        ? search["topics"]
-            .split(",")
-            .map((value) => Number.parseInt(value, 10))
-            .filter((value) => Number.isFinite(value))
-        : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { topics?: number[] } => {
+    const raw = search["topics"];
+    if (typeof raw !== "string" || raw.length === 0) return {};
+    return {
+      topics: raw
+        .split(",")
+        .map((value) => Number.parseInt(value, 10))
+        .filter((value) => Number.isFinite(value)),
+    };
+  },
   component: PractisePage,
 });
 

@@ -20,15 +20,6 @@ export interface QuizQuestion {
   difficulty: number;
 }
 
-function shuffle<T>(items: T[]): T[] {
-  const copy = [...items];
-  for (let i = copy.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy;
-}
-
 /**
  * Client-side fallback: builds fill-in-the-blank questions from the note text.
  * Picks the longest word in a sentence as the answer and uses other frequent
@@ -100,9 +91,8 @@ export async function generateLocalQuestions(
   } = await supabase.auth.getUser();
   if (!user) return 0;
   const withOwner = rows.map((row) => ({ ...row, owner_id: user.id }));
-  const { error } = await supabase
-    .from("questions")
-    .insert(withOwner as unknown as Record<string, string>);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await supabase.from("questions").insert(withOwner as any);
   if (error) return 0;
   return withOwner.length;
 }
