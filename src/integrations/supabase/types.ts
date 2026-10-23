@@ -88,6 +88,7 @@ export type Database = {
           finished_at: string | null
           id: string
           question_count: number
+          question_ids: string[]
           score: number | null
           started_at: string
           user_id: string
@@ -96,6 +97,7 @@ export type Database = {
           finished_at?: string | null
           id?: string
           question_count: number
+          question_ids?: string[]
           score?: number | null
           started_at?: string
           user_id: string
@@ -104,6 +106,7 @@ export type Database = {
           finished_at?: string | null
           id?: string
           question_count?: number
+          question_ids?: string[]
           score?: number | null
           started_at?: string
           user_id?: string
