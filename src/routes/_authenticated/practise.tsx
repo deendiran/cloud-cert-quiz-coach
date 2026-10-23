@@ -36,7 +36,7 @@ const QUIZ_LENGTHS = [5, 8, 12] as const;
 function PractisePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { search } = Route.useSearch();
+  const search = Route.useSearch();
 
   const topicsQuery = useQuery({
     queryKey: ["topics"],
