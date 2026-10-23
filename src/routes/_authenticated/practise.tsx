@@ -21,8 +21,8 @@ export const Route = createFileRoute("/_authenticated/practise")({
   }),
   validateSearch: (search: Record<string, unknown>) => ({
     topics:
-      typeof search.topics === "string" && search.topics.length > 0
-        ? search.topics
+      typeof search["topics"] === "string" && search["topics"].length > 0
+        ? search["topics"]
             .split(",")
             .map((value) => Number.parseInt(value, 10))
             .filter((value) => Number.isFinite(value))
