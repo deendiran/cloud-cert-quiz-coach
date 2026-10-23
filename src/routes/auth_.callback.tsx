@@ -17,7 +17,7 @@ export const Route = createFileRoute("/auth_/callback")({
 
 function AuthCallbackPage() {
   const navigate = useNavigate();
-  const { search } = Route.useSearch();
+  const search = Route.useSearch();
   const [error, setError] = useState<string | null>(null);
   const navigating = useRef(false);
 
