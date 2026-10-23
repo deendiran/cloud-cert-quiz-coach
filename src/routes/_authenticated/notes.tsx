@@ -27,6 +27,15 @@ import { generateQuestionsForNote } from "@/lib/server/generate-questions.functi
 import { speakSequence, speechSupported, stopSpeaking } from "@/lib/speech";
 
 export const Route = createFileRoute("/_authenticated/notes")({
+  head: () => ({
+    meta: [
+      { title: "Notes — Azure Quiz Coach" },
+      {
+        name: "description",
+        content: "Paste your study notes and turn them into practice questions.",
+      },
+    ],
+  }),
   component: NotesPage,
 });
 
@@ -395,8 +404,9 @@ function NotesPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this note?</AlertDialogTitle>
             <AlertDialogDescription>
-              "{notePendingDelete?.title}" and its {notePendingDelete?.questionCount ?? 0}{" "}
-              question{notePendingDelete?.questionCount === 1 ? "" : "s"} will be removed.
+              "{notePendingDelete?.title}" and its{" "}
+              {notePendingDelete ? (questionCounts.get(notePendingDelete.id) ?? 0) : 0}{" "}
+              question{notePendingDelete && (questionCounts.get(notePendingDelete.id) ?? 0) === 1 ? "" : "s"} will be removed.
               This can't be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>

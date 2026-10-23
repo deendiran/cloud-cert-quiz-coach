@@ -20,6 +20,15 @@ import {
 } from "@/lib/quiz-helpers";
 
 export const Route = createFileRoute("/_authenticated/results/$attemptId")({
+  head: () => ({
+    meta: [
+      { title: "Results — Azure Quiz Coach" },
+      {
+        name: "description",
+        content: "See your score, review missed questions and plan next steps.",
+      },
+    ],
+  }),
   component: ResultsPage,
 });
 
@@ -267,12 +276,10 @@ function ResultsPage() {
         </Button>
         <Button
           onClick={() =>
-            weakTopicIds.length > 0
-              ? navigate({
-                  to: "/practise",
-                  search: { topics: weakTopicIds.join(",") },
-                })
-              : navigate({ to: "/practise" })
+            navigate({
+              to: "/practise",
+              search: weakTopicIds.length > 0 ? { topics: weakTopicIds } : {},
+            })
           }
         >
           <Zap aria-hidden="true" />

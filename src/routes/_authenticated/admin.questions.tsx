@@ -46,6 +46,15 @@ import { useAuth } from "@/lib/auth-context";
 import { friendlyDbError } from "@/lib/quiz-helpers";
 
 export const Route = createFileRoute("/_authenticated/admin/questions")({
+  head: () => ({
+    meta: [
+      { title: "Manage questions — Azure Quiz Coach" },
+      {
+        name: "description",
+        content: "Admin view to create, edit, publish and delete built-in questions.",
+      },
+    ],
+  }),
   component: AdminQuestionsPage,
 });
 

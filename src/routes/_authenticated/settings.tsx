@@ -31,6 +31,15 @@ import { useSettings } from "@/lib/settings-context";
 import { deleteMyAccount } from "@/lib/server/delete-account.functions";
 
 export const Route = createFileRoute("/_authenticated/settings")({
+  head: () => ({
+    meta: [
+      { title: "Settings — Azure Quiz Coach" },
+      {
+        name: "description",
+        content: "Large text, dyslexia-friendly font, read-aloud speed and language.",
+      },
+    ],
+  }),
   component: SettingsPage,
 });
 
@@ -165,7 +174,7 @@ function SettingsPage() {
               max={2}
               step={0.1}
               value={[settings.speech_rate]}
-              onValueChange={([value]) => void update({ speech_rate: value })}
+              onValueChange={(values) => void update({ speech_rate: values[0] ?? 1 })}
               aria-label="Speech speed"
             />
             <div className="mt-1 flex justify-between text-xs text-muted-foreground">
