@@ -28,7 +28,7 @@ import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { db, useAuth } from "@/lib/auth-context";
 import { useSettings } from "@/lib/settings-context";
-import { deleteMyAccount } from "@/lib/server/delete-account.functions";
+import { deleteMyAccount } from "@/lib/api/delete-account.functions";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({
