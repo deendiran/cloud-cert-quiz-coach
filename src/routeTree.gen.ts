@@ -17,8 +17,6 @@ import { Route as AuthenticatedPractiseRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedReadinessRouteImport } from './routes/_authenticated/readiness'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthCallbackRouteImport } from './routes/auth_.callback'
-import { Route as AuthForgotRouteImport } from './routes/auth_.forgot'
-import { Route as AuthResetRouteImport } from './routes/auth_.reset'
 import { Route as AuthenticatedAdminQuestionsRouteImport } from './routes/_authenticated/admin.questions'
 import { Route as AuthenticatedQuizAttemptIdRouteImport } from './routes/_authenticated/quiz.$attemptId'
 import { Route as AuthenticatedResultsAttemptIdRouteImport } from './routes/_authenticated/results.$attemptId'
@@ -62,16 +60,6 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthForgotRoute = AuthForgotRouteImport.update({
-  id: '/auth_/forgot',
-  path: '/auth/forgot',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthResetRoute = AuthResetRouteImport.update({
-  id: '/auth_/reset',
-  path: '/auth/reset',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedAdminQuestionsRoute =
   AuthenticatedAdminQuestionsRouteImport.update({
     id: '/admin/questions',
@@ -99,8 +87,6 @@ export interface FileRoutesByFullPath {
   '/readiness': typeof AuthenticatedReadinessRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/auth/callback': typeof AuthCallbackRoute
-  '/auth/forgot': typeof AuthForgotRoute
-  '/auth/reset': typeof AuthResetRoute
   '/admin/questions': typeof AuthenticatedAdminQuestionsRoute
   '/quiz/$attemptId': typeof AuthenticatedQuizAttemptIdRoute
   '/results/$attemptId': typeof AuthenticatedResultsAttemptIdRoute
@@ -113,8 +99,6 @@ export interface FileRoutesByTo {
   '/readiness': typeof AuthenticatedReadinessRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/auth/callback': typeof AuthCallbackRoute
-  '/auth/forgot': typeof AuthForgotRoute
-  '/auth/reset': typeof AuthResetRoute
   '/admin/questions': typeof AuthenticatedAdminQuestionsRoute
   '/quiz/$attemptId': typeof AuthenticatedQuizAttemptIdRoute
   '/results/$attemptId': typeof AuthenticatedResultsAttemptIdRoute
@@ -129,8 +113,6 @@ export interface FileRoutesById {
   '/_authenticated/readiness': typeof AuthenticatedReadinessRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/auth_/callback': typeof AuthCallbackRoute
-  '/auth_/forgot': typeof AuthForgotRoute
-  '/auth_/reset': typeof AuthResetRoute
   '/_authenticated/admin/questions': typeof AuthenticatedAdminQuestionsRoute
   '/_authenticated/quiz/$attemptId': typeof AuthenticatedQuizAttemptIdRoute
   '/_authenticated/results/$attemptId': typeof AuthenticatedResultsAttemptIdRoute
@@ -145,8 +127,6 @@ export interface FileRouteTypes {
     | '/readiness'
     | '/settings'
     | '/auth/callback'
-    | '/auth/forgot'
-    | '/auth/reset'
     | '/admin/questions'
     | '/quiz/$attemptId'
     | '/results/$attemptId'
@@ -159,8 +139,6 @@ export interface FileRouteTypes {
     | '/readiness'
     | '/settings'
     | '/auth/callback'
-    | '/auth/forgot'
-    | '/auth/reset'
     | '/admin/questions'
     | '/quiz/$attemptId'
     | '/results/$attemptId'
@@ -174,8 +152,6 @@ export interface FileRouteTypes {
     | '/_authenticated/readiness'
     | '/_authenticated/settings'
     | '/auth_/callback'
-    | '/auth_/forgot'
-    | '/auth_/reset'
     | '/_authenticated/admin/questions'
     | '/_authenticated/quiz/$attemptId'
     | '/_authenticated/results/$attemptId'
@@ -186,8 +162,6 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
-  AuthForgotRoute: typeof AuthForgotRoute
-  AuthResetRoute: typeof AuthResetRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -248,20 +222,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/auth_/forgot': {
-      id: '/auth_/forgot'
-      path: '/auth/forgot'
-      fullPath: '/auth/forgot'
-      preLoaderRoute: typeof AuthForgotRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth_/reset': {
-      id: '/auth_/reset'
-      path: '/auth/reset'
-      fullPath: '/auth/reset'
-      preLoaderRoute: typeof AuthResetRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated/admin/questions': {
       id: '/_authenticated/admin/questions'
       path: '/admin/questions'
@@ -314,8 +274,6 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   AuthCallbackRoute: AuthCallbackRoute,
-  AuthForgotRoute: AuthForgotRoute,
-  AuthResetRoute: AuthResetRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

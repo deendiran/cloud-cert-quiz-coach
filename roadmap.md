@@ -8,7 +8,7 @@ Unofficial Azure exam-practice app (mobile-first, TanStack Start + Lovable Cloud
 
 ## In progress
 - [ ] Design system (calm blue palette, green/amber feedback, light+dark, a11y tokens)
-- [ ] Auth foundation: AuthProvider, /auth (tabs + Google), /auth/forgot, /auth/reset, /auth/callback, protected route gate, header with display name + admin link
+- [x] Auth: Google-only sign-in (email/password removed per user), sign-in lands on /practise
 
 ## Blocked — waiting on user
 - [ ] Database schema (profiles, user_roles, user_settings, topics, notes, questions, attempts, answers, ai_usage, has_role, handle_new_user, readiness_inputs view, RLS, seed topics + supabase/seed.sql) — waiting for the user's schema file paste
