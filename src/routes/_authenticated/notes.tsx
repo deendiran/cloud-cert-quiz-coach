@@ -23,7 +23,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useSettings, langTag } from "@/lib/settings-context";
 import { friendlyDbError, shuffle } from "@/lib/quiz-helpers";
 import { generateLocalQuestions } from "@/lib/fallback-questions";
-import { generateQuestionsForNote } from "@/lib/server/generate-questions.functions";
+import { generateQuestionsForNote } from "@/lib/api/generate-questions.functions";
 import { speakSequence, speechSupported, stopSpeaking } from "@/lib/speech";
 
 export const Route = createFileRoute("/_authenticated/notes")({
